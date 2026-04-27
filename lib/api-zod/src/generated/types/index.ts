@@ -6,4 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./analyzeStockBody";
+export * from "./apiError";
 export * from "./healthStatus";
+export * from "./newsItem";
+export * from "./newsItemSentiment";
+export * from "./stockAnalysis";
+export * from "./stockAnalysisConfidenceLevel";

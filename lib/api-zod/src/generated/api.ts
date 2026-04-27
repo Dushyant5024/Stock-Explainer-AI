@@ -14,3 +14,44 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Generate a structured, AI-powered explanation for why a stock moved.
+ * @summary Analyze a stock movement question
+ */
+export const analyzeStockBodyQueryMin = 3;
+export const analyzeStockBodyQueryMax = 500;
+
+export const AnalyzeStockBody = zod.object({
+  query: zod
+    .string()
+    .min(analyzeStockBodyQueryMin)
+    .max(analyzeStockBodyQueryMax)
+    .describe(
+      'Natural language question, e.g. \"Why did Apple stock fall today?\"',
+    ),
+});
+
+export const AnalyzeStockResponse = zod.object({
+  companyName: zod.string(),
+  ticker: zod.string().optional(),
+  priceMovement: zod.string(),
+  percentChange: zod.string().optional(),
+  newsSentiment: zod.array(
+    zod.object({
+      headline: zod.string(),
+      sentiment: zod.enum(["Positive", "Negative", "Neutral"]),
+      impact: zod.string(),
+    }),
+  ),
+  overallSentiment: zod.string(),
+  marketSignals: zod.array(zod.string()),
+  technicalAnalysis: zod.array(zod.string()),
+  finalExplanation: zod.string(),
+  confidenceLevel: zod.enum(["High", "Medium", "Low"]),
+  confidenceReason: zod.string(),
+  dataNotes: zod
+    .string()
+    .optional()
+    .describe("Notes about missing or limited data, when applicable"),
+});

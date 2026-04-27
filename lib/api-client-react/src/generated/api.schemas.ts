@@ -8,3 +8,56 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface ApiError {
+  error: string;
+}
+
+export interface AnalyzeStockBody {
+  /**
+   * Natural language question, e.g. "Why did Apple stock fall today?"
+   * @minLength 3
+   * @maxLength 500
+   */
+  query: string;
+}
+
+export type NewsItemSentiment =
+  (typeof NewsItemSentiment)[keyof typeof NewsItemSentiment];
+
+export const NewsItemSentiment = {
+  Positive: "Positive",
+  Negative: "Negative",
+  Neutral: "Neutral",
+} as const;
+
+export interface NewsItem {
+  headline: string;
+  sentiment: NewsItemSentiment;
+  impact: string;
+}
+
+export type StockAnalysisConfidenceLevel =
+  (typeof StockAnalysisConfidenceLevel)[keyof typeof StockAnalysisConfidenceLevel];
+
+export const StockAnalysisConfidenceLevel = {
+  High: "High",
+  Medium: "Medium",
+  Low: "Low",
+} as const;
+
+export interface StockAnalysis {
+  companyName: string;
+  ticker?: string;
+  priceMovement: string;
+  percentChange?: string;
+  newsSentiment: NewsItem[];
+  overallSentiment: string;
+  marketSignals: string[];
+  technicalAnalysis: string[];
+  finalExplanation: string;
+  confidenceLevel: StockAnalysisConfidenceLevel;
+  confidenceReason: string;
+  /** Notes about missing or limited data, when applicable */
+  dataNotes?: string;
+}

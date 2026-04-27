@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: stocks
+    description: Stock movement explanation operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /stocks/analyze:
+    post:
+      operationId: analyzeStock
+      tags: [stocks]
+      summary: Analyze a stock movement question
+      description: Generate a structured, AI-powered explanation for why a stock moved.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeStockBody"
+      responses:
+        "200":
+          description: Stock movement analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockAnalysis"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +66,79 @@ components:
           type: string
       required:
         - status
-
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    AnalyzeStockBody:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Natural language question, e.g. "Why did Apple stock fall today?"
+          minLength: 3
+          maxLength: 500
+      required:
+        - query
+    NewsItem:
+      type: object
+      properties:
+        headline:
+          type: string
+        sentiment:
+          type: string
+          enum: [Positive, Negative, Neutral]
+        impact:
+          type: string
+      required:
+        - headline
+        - sentiment
+        - impact
+    StockAnalysis:
+      type: object
+      properties:
+        companyName:
+          type: string
+        ticker:
+          type: string
+        priceMovement:
+          type: string
+        percentChange:
+          type: string
+        newsSentiment:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewsItem"
+        overallSentiment:
+          type: string
+        marketSignals:
+          type: array
+          items:
+            type: string
+        technicalAnalysis:
+          type: array
+          items:
+            type: string
+        finalExplanation:
+          type: string
+        confidenceLevel:
+          type: string
+          enum: [High, Medium, Low]
+        confidenceReason:
+          type: string
+        dataNotes:
+          type: string
+          description: Notes about missing or limited data, when applicable
+      required:
+        - companyName
+        - priceMovement
+        - newsSentiment
+        - overallSentiment
+        - marketSignals
+        - technicalAnalysis
+        - finalExplanation
+        - confidenceLevel
+        - confidenceReason

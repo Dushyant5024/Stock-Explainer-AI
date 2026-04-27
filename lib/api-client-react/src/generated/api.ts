@@ -5,18 +5,26 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  AnalyzeStockBody,
+  ApiError,
+  HealthStatus,
+  StockAnalysis,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +107,90 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Generate a structured, AI-powered explanation for why a stock moved.
+ * @summary Analyze a stock movement question
+ */
+export const getAnalyzeStockUrl = () => {
+  return `/api/stocks/analyze`;
+};
+
+export const analyzeStock = async (
+  analyzeStockBody: AnalyzeStockBody,
+  options?: RequestInit,
+): Promise<StockAnalysis> => {
+  return customFetch<StockAnalysis>(getAnalyzeStockUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(analyzeStockBody),
+  });
+};
+
+export const getAnalyzeStockMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof analyzeStock>>,
+    TError,
+    { data: BodyType<AnalyzeStockBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof analyzeStock>>,
+  TError,
+  { data: BodyType<AnalyzeStockBody> },
+  TContext
+> => {
+  const mutationKey = ["analyzeStock"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof analyzeStock>>,
+    { data: BodyType<AnalyzeStockBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return analyzeStock(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AnalyzeStockMutationResult = NonNullable<
+  Awaited<ReturnType<typeof analyzeStock>>
+>;
+export type AnalyzeStockMutationBody = BodyType<AnalyzeStockBody>;
+export type AnalyzeStockMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Analyze a stock movement question
+ */
+export const useAnalyzeStock = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof analyzeStock>>,
+    TError,
+    { data: BodyType<AnalyzeStockBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof analyzeStock>>,
+  TError,
+  { data: BodyType<AnalyzeStockBody> },
+  TContext
+> => {
+  return useMutation(getAnalyzeStockMutationOptions(options));
+};
